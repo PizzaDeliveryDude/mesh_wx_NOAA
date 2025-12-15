@@ -14,11 +14,14 @@ JSONFile="noaa_observations_latest.json"
 FunctionsFile="functions.sh"
 
 # variables
-UserStationId="KNYC"
+UserStationId="KLAX"
 echo "UserStationId: "$UserStationId
 
-NodeLocation="Midtown E"
+NodeLocation="Hotel Room 420"
 echo "Node Location: "$NodeLocation
+
+Channel=2
+echo "Meshtastic Channel: "$Channel
 
 # temp JSON location
 echo "JSON location: "$ProjectDir$JSONFile
@@ -109,13 +112,34 @@ echo $"Heat Index (°C): "$HeatIndex$" Converted Heat Index (°F): "$FloatHeatIn
 
 echo ""
 echo " - - message body"
-echo $StationName
-echo $(date '+%H:%M:%S')
-echo "Conditions:"$TextDescription
-echo "Temp:"$FloatTemperature"°F"
-echo "Dewpoint:"$FloatDewpoint"°F"
-echo "Wind:"$WindDirectionName" "$WindSpeed" kmph"
-echo "📍"$NodeLocation
+WxReport=""
+WxReport+=$StationName
+WxReport+=$'\n'$(date '+%H:%M:%S')
+WxReport+=$'\nConditions:'$TextDescription
+WxReport+=$'\nTemp:'$FloatTemperature"°F"
+WxReport+=$'\nDewpoint:'$FloatDewpoint"°F"
+WxReport+=$'\nWind:'$WindDirectionName" "$WindSpeed" kmph"
+WxReport+=$'\n📍'$NodeLocation
+
+echo $WxReport
+
+#echo $StationName
+#echo $(date '+%H:%M:%S')
+#echo "Conditions:"$TextDescription
+#echo "Temp:"$FloatTemperature"°F"
+#echo "Dewpoint:"$FloatDewpoint"°F"
+#echo "Wind:"$WindDirectionName" "$WindSpeed" kmph"
+#echo "📍"$NodeLocation
+
+
+
+echo ""
+echo " - - send mesh_wx"
+python -m venv ~/src/venv && source ~/src/venv/bin/activate;
+echo "python stuff"
+
+meshtastic --ch-index $Channel --sendtext "$WxReport">/dev/null 2>&1
+echo "meshtastic stuff"
 
 echo ""
 echo " - - execution times"
