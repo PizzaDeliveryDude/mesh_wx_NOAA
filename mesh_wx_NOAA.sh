@@ -1,16 +1,24 @@
 #!/bin/bash
 
-# NOAA Observations - Latest
+# NOAA observations - latest
 echo $(clear)
 
 # setup
 echo ""
 echo " - - script setup"
 Begin=$(date '+%Y-%m-%d %H:%M:%S')
+
+# file location variables
 ProjectDir="mesh_wx_NOAA/"
 JSONFile="noaa_observations_latest.json"
 FunctionsFile="functions.sh"
+
+# variables
 UserStationId="KNYC"
+echo "UserStationId: "$UserStationId
+
+NodeLocation="Midtown E"
+echo "Node Location: "$NodeLocation
 
 # temp JSON location
 echo "JSON location: "$ProjectDir$JSONFile
@@ -99,21 +107,21 @@ HeatIndex=$(jq -r .properties.heatIndex.value $ProjectDir$JSONFile)
 FloatHeatIndex=$(c_to_f $(echo "$HeatIndex" | bc))
 echo $"Heat Index (°C): "$HeatIndex$" Converted Heat Index (°F): "$FloatHeatIndex
 
-CloudLayers=$(jq -r .properties.cloudLayers.[0].base.value $ProjectDir$JSONFile)
-echo $"CloudLayers: "$CloudLayers
+echo ""
+echo " - - message body"
+echo $StationName
+echo $(date '+%H:%M:%S')
+echo "Conditions:"$TextDescription
+echo "Temp:"$FloatTemperature"°F"
+echo "Dewpoint:"$FloatDewpoint"°F"
+echo "Wind:"$WindDirectionName" "$WindSpeed" kmph"
+echo "📍"$NodeLocation
 
+echo ""
+echo " - - execution times"
 End=$(date '+%Y-%m-%d %H:%M:%S')
 echo $"Script Begin: "$Begin
 echo $"Script   End: "$End
-
-
-
-
-
-
-
-
-
 
 # Two step process for getting forecast - https://weather-gov.github.io/api/general-faqs
 # Step 1 - https://api.weather.gov/points/{lat},{lon}

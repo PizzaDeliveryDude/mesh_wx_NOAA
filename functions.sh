@@ -116,14 +116,14 @@ wind_dir_name() {
   # use tenths of degrees to avoid floating point (0..3590)
   local deg10=$((deg * 10))
 
-  if   (( deg10 >= 3375 || deg10 < 225 )); then printf 'N ↑'
-  elif (( deg10 >= 225  && deg10 <  675 )); then printf 'NE ↗'
-  elif (( deg10 >= 675  && deg10 < 1125 )); then printf 'E →'
-  elif (( deg10 >= 1125 && deg10 < 1575 )); then printf 'SE ↘'
-  elif (( deg10 >= 1575 && deg10 < 2025 )); then printf 'S ↓'
-  elif (( deg10 >= 2025 && deg10 < 2475 )); then printf 'SW ↙'
-  elif (( deg10 >= 2475 && deg10 < 2925 )); then printf 'W ←'
-  elif (( deg10 >= 2925 && deg10 < 3375 )); then printf 'NW ↖'
+  if   (( deg10 >= 3375 || deg10 < 225 )); then printf 'N'
+  elif (( deg10 >= 225  && deg10 <  675 )); then printf 'NE'
+  elif (( deg10 >= 675  && deg10 < 1125 )); then printf 'E'
+  elif (( deg10 >= 1125 && deg10 < 1575 )); then printf 'SE'
+  elif (( deg10 >= 1575 && deg10 < 2025 )); then printf 'S'
+  elif (( deg10 >= 2025 && deg10 < 2475 )); then printf 'SW'
+  elif (( deg10 >= 2475 && deg10 < 2925 )); then printf 'W'
+  elif (( deg10 >= 2925 && deg10 < 3375 )); then printf 'NW'
   else
     # should never happen
     printf 'Unknown\n' >&2
