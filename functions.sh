@@ -63,6 +63,84 @@ fetch_noaa_latest() {
   mv -f "$tmp" "$out" && echo "fetch_noaa_latest Updated: $out" || { echo "Error: failed to move $tmp to $out" >&2; rm -f "$tmp"; return 4; }
 }
 # ************************************************************************************************************************************
+# copolit wrote this
+# Bash function to GET NOAA forecast and save to mesh_wx_NOAA/noaa_location_forecast.json
+#
+# Note: NOAA API requests are expected to include a descriptive User-Agent.
+# Replace the contact info in USER_AGENT if you want to include an email or other contact.
+
+USER_AGENT="PizzaDeliveryDude (script)"
+
+fetch_noaa_forecast() {
+#KNYC OKX/34,37
+#KLGB SGX/32,67
+  local url="https://api.weather.gov/gridpoints/SGX/32,67/forecast"
+  local out_path="mesh_wx_NOAA/noaa_location_forecast.json"
+  local tmp
+  local retries=5
+  local attempt=0
+  local wait_sec=2
+
+  # Ensure output directory exists
+  mkdir -p "$(dirname "$out_path")"
+
+  tmp="$(mktemp)" || { echo "Failed to create temp file" >&2; return 1; }
+
+  while :; do
+    attempt=$((attempt + 1))
+    echo "Fetching NOAA forecast (attempt $attempt)..."
+
+    # Use -f to make curl exit non‑zero on HTTP >=400, -sS for silent but show errors
+    if curl -sS -f \
+      -H "Accept: application/ld+json, application/json" \
+      -H "User-Agent: $USER_AGENT" \
+      "$url" -o "$tmp"; then
+
+      # If jq is available, validate (and pretty-print) JSON before saving
+      if command -v jq >/dev/null 2>&1; then
+        if jq empty "$tmp" >/dev/null 2>&1; then
+          jq . "$tmp" > "$out_path"
+          rm -f "$tmp"
+          echo "Forecast saved to $out_path"
+          return 0
+        else
+          echo "Error: received invalid JSON" >&2
+          rm -f "$tmp"
+          return 2
+        fi
+      else
+        # No jq: move as-is
+        mv "$tmp" "$out_path"
+        echo "Forecast saved to $out_path (jq not installed; file not pretty-printed)"
+        return 0
+      fi
+
+    else
+      # curl failed
+      status=$?
+      echo "Request failed (curl exit $status)." >&2
+      if [ "$attempt" -ge "$retries" ]; then
+        echo "Failed after $attempt attempts. Giving up." >&2
+        rm -f "$tmp"
+        return $status
+      fi
+      echo "Retrying in $wait_sec seconds..." >&2
+      sleep "$wait_sec"
+      wait_sec=$((wait_sec * 2))
+    fi
+  done
+}
+
+# If this file is executed (not sourced), run the function once.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  fetch_noaa_forecast
+fi
+
+
+
+
+
+# ************************************************************************************************************************************
 # copilot wrote this
 # converts degrees celsius to fahrenheit
 
