@@ -116,8 +116,7 @@ echo $"Heat Index (°C): "$HeatIndex$" Converted Heat Index (°F): "$FloatHeatIn
 echo ""
 echo " - - message body"
 WxReport=""
-WxReport+=$UserStationId
-WxReport+=$'\n'$(date '+%H:%M:%S')
+WxReport+=$UserStationId$' - '$(date '+%H:%M:%S')
 WxReport+=$'\nConditions:'$TextDescription
 WxReport+=$'\nTemp:'$FloatTemperature"°F"
 WxReport+=$'\nDewpoint:'$FloatDewpoint"°F"
@@ -140,6 +139,7 @@ echo " - - noaa_location_forecast"
 
 JSONFile="noaa_location_metadata.json"
 WxReport=""
+
 # Two step process for getting forecast - https://weather-gov.github.io/api/general-faqs
 # Step 1 - https://api.weather.gov/points/{lat},{lon}
 #curl  https://api.weather.gov/points/40.7565,-73.9702 >> mesh_wx_NOAA/noaa_location_metadata.json
@@ -165,8 +165,7 @@ echo "Detailed Forecast: "$DetailedForecast
 
 echo ""
 echo " - - message body"
-WxReport=$UserStationId
-WxReport+=$'\n'$(date '+%H:%M:%S')
+WxReport=$UserStationId$' - '$(date '+%H:%M:%S')
 WxReport+=$'\n'$ForecastName", "$DetailedForecast
 WxReport+=$'\n📍'$NodeLocation
 
