@@ -70,7 +70,8 @@ WindDirectionName=$(wind_dir_name $WindDirection)
 echo $"Wind Direction (°): "$WindDirection$" Wind Direction Name: "$WindDirectionName
 
 WindSpeed=$(jq -r .properties.windSpeed.value $ProjectDir$JSONFile)
-echo $"Wind Speed (kmh): "$WindSpeed
+WindSpeedMph=$(kph_to_mph $WindSpeed)
+echo $"Wind Speed (kmh): "$WindSpeed$"Wind Speed (mph): "$WindSpeedMph
 
 WindGust=$(jq -r .properties.windGust.value $ProjectDir$JSONFile)
 echo $"Wind Gust (kmh): "$WindGust
@@ -118,7 +119,7 @@ WxReport+=$'\n'$(date '+%H:%M:%S')
 WxReport+=$'\nConditions:'$TextDescription
 WxReport+=$'\nTemp:'$FloatTemperature"°F"
 WxReport+=$'\nDewpoint:'$FloatDewpoint"°F"
-WxReport+=$'\nWind:'$WindDirectionName" "$WindSpeed" kmph"
+WxReport+=$'\nWind:'$WindDirectionName" "$WindSpeedMph
 WxReport+=$'\n📍'$NodeLocation
 
 echo $WxReport
@@ -128,7 +129,7 @@ echo $WxReport
 #echo "Conditions:"$TextDescription
 #echo "Temp:"$FloatTemperature"°F"
 #echo "Dewpoint:"$FloatDewpoint"°F"
-#echo "Wind:"$WindDirectionName" "$WindSpeed" kmph"
+#echo "Wind:"$WindDirectionName" "$WindSpeedMph
 #echo "📍"$NodeLocation
 
 
