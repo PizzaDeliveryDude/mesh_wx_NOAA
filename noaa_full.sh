@@ -116,7 +116,7 @@ echo $"Heat Index (°C): "$HeatIndex$" Converted Heat Index (°F): "$FloatHeatIn
 echo ""
 echo " - - message body"
 WxReport=""
-WxReport+=$StationName
+WxReport+=$UserStationId
 WxReport+=$'\n'$(date '+%H:%M:%S')
 WxReport+=$'\nConditions:'$TextDescription
 WxReport+=$'\nTemp:'$FloatTemperature"°F"
@@ -125,16 +125,6 @@ WxReport+=$'\nWind:'$WindDirectionName" "$WindSpeedMph
 WxReport+=$'\n📍'$NodeLocation
 
 echo $WxReport
-
-#echo $StationName
-#echo $(date '+%H:%M:%S')
-#echo "Conditions:"$TextDescription
-#echo "Temp:"$FloatTemperature"°F"
-#echo "Dewpoint:"$FloatDewpoint"°F"
-#echo "Wind:"$WindDirectionName" "$WindSpeedMph
-#echo "📍"$NodeLocation
-
-
 
 echo ""
 echo " - - send mesh_wx"
@@ -146,37 +136,38 @@ meshtastic --ch-index $Channel --sendtext "$WxReport"
 echo "meshtastic stuff"
 
 echo ""
-echo " - - execution times"
-End=$(date '+%Y-%m-%d %H:%M:%S')
-echo $"Script Begin: "$Begin
-echo $"Script   End: "$End
+echo " - - noaa_location_forecast"
 
+JSONFile="noaa_location_metadata.json"
+WxReport=""
 # Two step process for getting forecast - https://weather-gov.github.io/api/general-faqs
 # Step 1 - https://api.weather.gov/points/{lat},{lon}
 #curl  https://api.weather.gov/points/40.7565,-73.9702 >> mesh_wx_NOAA/noaa_location_metadata.json
 # Step 2 - Find the properties object, and inside that, find the forecast property. You’ll find another URL there.
 #curl  https://api.weather.gov/gridpoints/OKX/34,37/forecast >> mesh_wx_NOAA/noaa_location_forecast.json
 
-curl https://api.weather.gov/points/$Latitude,$Longitude > mesh_wx_NOAA/noaa_location_metadata.json
+curl https://api.weather.gov/points/$Latitude,$Longitude > $ProjectDir$JSONFile
 
-ForecastUrl=$(jq -r .properties.forecast mesh_wx_NOAA/noaa_location_metadata.json)
+ForecastUrl=$(jq -r .properties.forecast $ProjectDir$JSONFile)
 echo $"Forecast URL: "$ForecastUrl
 
-curl $ForecastUrl > mesh_wx_NOAA/noaa_location_forecast.json
+JSONFile="noaa_location_forecast.json"
+curl $ForecastUrl > $ProjectDir$JSONFile
 
 # latest forecast data
 echo ""
 echo " - - data"
-ForecastName=$(jq -r .periods[0].name mesh_wx_NOAA/noaa_location_forecast.json)
+ForecastName=$(jq -r .properties.periods[0].name $ProjectDir$JSONFile)
 echo "Forecast Name: "$ForecastName
 
-DetailedForecast=$(jq -r .periods[0].detailedForecast mesh_wx_NOAA/noaa_location_forecast.json)
+DetailedForecast=$(jq -r .properties.periods[0].detailedForecast $ProjectDir$JSONFile)
 echo "Detailed Forecast: "$DetailedForecast
 
 echo ""
 echo " - - message body"
-WxReport=""
-WxReport+=$ForecastName", "$DetailedForecast
+WxReport=$UserStationId
+WxReport+=$'\n'$(date '+%H:%M:%S')
+WxReport+=$'\n'$ForecastName", "$DetailedForecast
 WxReport+=$'\n📍'$NodeLocation
 
 echo $WxReport
