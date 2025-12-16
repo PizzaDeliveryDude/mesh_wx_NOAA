@@ -165,7 +165,7 @@ kph_to_mph() {
   local mph
   mph=$(awk -v k="$kph" 'BEGIN { printf "%.0f", k / 1.609344 }')
 
-  printf '%s' "$mph"
+  printf '%s mph' "$mph"
 }
 
 # Examples:
