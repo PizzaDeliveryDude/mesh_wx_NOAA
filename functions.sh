@@ -68,10 +68,9 @@ fetch_noaa_latest() {
 
 c_to_f() {
   local input="${1:-}"
-  local prec="${2:-2}"
 
   if [[ -z $input ]]; then
-    echo "c_to_f Usage: c_to_f <temp[C]> [precision]" >&2
+    echo "Usage: c_to_f <temp[C]>" >&2
     return 1
   fi
 
@@ -84,15 +83,15 @@ c_to_f() {
 
   # validate numeric (allow optional sign and decimal point)
   if ! [[ $s =~ ^[+-]?[0-9]*\.?[0-9]+$ ]]; then
-    echo "c_to_f Invalid temperature: $input" >&2
+    echo "Invalid temperature: $input" >&2
     return 2
   fi
 
-  # compute using awk for floating-point math and formatting
+  # compute and round to nearest whole degree using awk's formatting
   local f
-  f=$(awk -v c="$s" -v p="$prec" 'BEGIN { fmt = "%." p "f"; printf fmt, c * 9/5 + 32 }')
+  f=$(awk -v c="$s" 'BEGIN { printf "%.0f", c * 9/5 + 32 }')
 
-#  printf "%s°F\n" "$f"
+  #printf "%s°F\n" "$f"
   printf "%s" "$f"
 }
 
