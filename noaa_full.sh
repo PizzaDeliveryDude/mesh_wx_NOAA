@@ -150,3 +150,48 @@ echo " - - execution times"
 End=$(date '+%Y-%m-%d %H:%M:%S')
 echo $"Script Begin: "$Begin
 echo $"Script   End: "$End
+
+# Two step process for getting forecast - https://weather-gov.github.io/api/general-faqs
+# Step 1 - https://api.weather.gov/points/{lat},{lon}
+#curl  https://api.weather.gov/points/40.7565,-73.9702 >> mesh_wx_NOAA/noaa_location_metadata.json
+# Step 2 - Find the properties object, and inside that, find the forecast property. You’ll find another URL there.
+#curl  https://api.weather.gov/gridpoints/OKX/34,37/forecast >> mesh_wx_NOAA/noaa_location_forecast.json
+
+curl https://api.weather.gov/points/$Latitude,$Longitude > mesh_wx_NOAA/noaa_location_metadata.json
+
+ForecastUrl=$(jq -r .properties.forecast mesh_wx_NOAA/noaa_location_metadata.json)
+echo $"Forecast URL: "$ForecastUrl
+
+curl $ForecastUrl > mesh_wx_NOAA/noaa_location_forecast.json
+
+# latest forecast data
+echo ""
+echo " - - data"
+ForecastName=$(jq -r .periods[0].name mesh_wx_NOAA/noaa_location_forecast.json)
+echo "Forecast Name: "$ForecastName
+
+DetailedForecast=$(jq -r .periods[0].detailedForecast mesh_wx_NOAA/noaa_location_forecast.json)
+echo "Detailed Forecast: "$DetailedForecast
+
+echo ""
+echo " - - message body"
+WxReport=""
+WxReport+=$ForecastName", "$DetailedForecast
+WxReport+=$'\n📍'$NodeLocation
+
+echo $WxReport
+
+echo ""
+echo " - - send mesh_wx"
+python -m venv ~/src/venv && source ~/src/venv/bin/activate;
+echo "python stuff"
+
+meshtastic --ch-index $Channel --sendtext "$WxReport"
+#meshtastic --ch-index $Channel --sendtext "$WxReport">/dev/null 2>&1
+echo "meshtastic stuff"
+
+echo ""
+echo " - - execution times"
+End=$(date '+%Y-%m-%d %H:%M:%S')
+echo $"Script Begin: "$Begin
+echo $"Script   End: "$End
