@@ -138,7 +138,8 @@ echo " - - send mesh_wx"
 python -m venv ~/src/venv && source ~/src/venv/bin/activate;
 echo "python stuff"
 
-meshtastic --ch-index $Channel --sendtext "$WxReport">/dev/null 2>&1
+meshtastic --ch-index $Channel --sendtext "$WxReport"
+#meshtastic --ch-index $Channel --sendtext "$WxReport">/dev/null 2>&1
 echo "meshtastic stuff"
 
 echo ""
