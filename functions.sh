@@ -129,3 +129,47 @@ wind_dir_name() {
     return 2
   fi
 }
+
+# ************************************************************************************************************************************
+# copilot wrote this
+# Function: kph_to_mph <kilometers_per_hour>
+# - Converts kilometers/hour to miles/hour
+# - Rounds to the nearest whole number
+# - If input is empty or numeric 0, prints "calm"
+
+kph_to_mph() {
+  local kph="$1"
+
+  # If no argument provided or empty
+  if [[ -z "$kph" ]]; then
+    printf 'calm'
+    return 0
+  fi
+
+  # Normalize common forms of zero (0, 0.0, 0.00)
+  # And validate numeric input (allow optional leading - for completeness)
+  if ! [[ "$kph" =~ ^-?[0-9]+([.][0-9]+)?$ ]]; then
+    # non-numeric input -> treat as calm per safety (change if you prefer an error)
+    printf 'calm'
+    return 0
+  fi
+
+  # If numeric value is exactly zero -> calm
+  # Use awk to check numeric value (handles decimals)
+  if awk -v v="$kph" 'BEGIN { if (v+0 == 0) exit 0; exit 1 }'; then
+    printf 'calm'
+    return 0
+  fi
+
+  # Convert KPH to MPH (1 mile = 1.609344 km) and round to nearest whole number
+  local mph
+  mph=$(awk -v k="$kph" 'BEGIN { printf "%.0f", k / 1.609344 }')
+
+  printf '%s' "$mph"
+}
+
+# Examples:
+# echo "$(kph_to_mph 100)"   # -> 62
+# echo "$(kph_to_mph 0)"     # -> calm
+# echo "$(kph_to_mph 5.5)"   # -> 3
+# echo "$(kph_to_mph)"       # -> calm
