@@ -14,7 +14,7 @@ JSONFile="noaa_observations_latest.json"
 FunctionsFile="functions.sh"
 
 # variables
-UserStationId="KLAX"
+UserStationId="KLGB"
 echo "UserStationId: "$UserStationId
 
 NodeLocation="Hotel Room 420"
