@@ -14,10 +14,10 @@ JSONFile="noaa_observations_latest.json"
 FunctionsFile="functions.sh"
 
 # variables
-UserStationId="KLGB"
+UserStationId="${1:-KNYC}"
 echo "UserStationId: "$UserStationId
 
-NodeLocation="Hotel Room 420"
+NodeLocation="${2:-$UserStationId}"
 echo "Node Location: "$NodeLocation
 
 Channel=2
@@ -152,15 +152,16 @@ ForecastUrl=$(jq -r .properties.forecast $ProjectDir$JSONFile)
 echo $"Forecast URL: "$ForecastUrl
 
 JSONFile="noaa_location_forecast.json"
-curl $ForecastUrl > $ProjectDir$JSONFile
+
+fetch_noaa_forecast  $ForecastUrl
 
 # latest forecast data
 echo ""
 echo " - - data"
-ForecastName=$(jq -r .properties.periods[0].name $ProjectDir$JSONFile)
+ForecastName=$(jq -r .periods[0].name $ProjectDir$JSONFile)
 echo "Forecast Name: "$ForecastName
 
-DetailedForecast=$(jq -r .properties.periods[0].detailedForecast $ProjectDir$JSONFile)
+DetailedForecast=$(jq -r .periods[0].detailedForecast $ProjectDir$JSONFile)
 echo "Detailed Forecast: "$DetailedForecast
 
 echo ""
