@@ -74,7 +74,12 @@ USER_AGENT="PizzaDeliveryDude (script)"
 fetch_noaa_forecast() {
 #KNYC OKX/34,37
 #KLGB SGX/32,67
-  local url="https://api.weather.gov/gridpoints/SGX/32,67/forecast"
+#  local url="https://api.weather.gov/gridpoints/SGX/32,67/forecast"
+  local url="${1:-https://api.weather.gov/gridpoints/SGX/32,67/forecast}"
+
+
+  local station="${1:-KNYC}"
+
   local out_path="mesh_wx_NOAA/noaa_location_forecast.json"
   local tmp
   local retries=5

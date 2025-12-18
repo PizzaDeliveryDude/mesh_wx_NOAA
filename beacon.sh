@@ -9,7 +9,8 @@ echo " - - script setup"
 Begin=$(date '+%Y-%m-%d %H:%M:%S')
 
 Channel="${1:-0}"
-Beacon='I send hourly reports on the nyme.sh weather channel - - Channel Name:Wx Key Size: 1 byte Key:WQ=='
+Beacon=$'I send hourly reports on the nyme.sh weather channel\n\nChannel Name:Wx\nKey Size: 1 byte\nKey:WQ=='
+
 echo ""
 echo " - - send mesh_wx"
 python -m venv ~/src/venv && source ~/src/venv/bin/activate;

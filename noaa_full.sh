@@ -4,29 +4,36 @@
 echo $(clear)
 
 # setup
-echo ""
 echo " - - script setup"
 Begin=$(date '+%Y-%m-%d %H:%M:%S')
+echo $"Script Begin: "$Begin
 
 # file location variables
 ProjectDir="mesh_wx_NOAA/"
 JSONFile="noaa_observations_latest.json"
 FunctionsFile="functions.sh"
+echo "Project Directory: "$ProjectDir
+echo "JSON location: "$ProjectDir$JSONFile
+echo "Functions location: "$ProjectDir$FunctionsFile
 
 # variables
+# the first variable the user can specify is the airport code, KNYC is default
 UserStationId="${1:-KNYC}"
 echo "UserStationId: "$UserStationId
 
+# the second variable the user can specify is the node sending location, airport code is default
 NodeLocation="${2:-$UserStationId}"
 echo "Node Location: "$NodeLocation
 
+# meshtastic radio channel, plesae do not spam your default local channel :)
 Channel=2
 echo "Meshtastic Channel: "$Channel
 
-# temp JSON location
+# temp JSON location for noaa_observations_latest
 echo "JSON location: "$ProjectDir$JSONFile
 
-# script FunctionsFile location
+# script functions location
+# API calls and conversions are done in that file
 source $ProjectDir$FunctionsFile
 echo "additional script functions location: "$ProjectDir$FunctionsFile
 
@@ -35,12 +42,14 @@ echo " - - fetch NOAA latest"
 
 # fetch_noaa_latest
 fetch_noaa_latest $UserStationId $ProjectDir$JSONFile
+echo "fetch_noaa_latest API call"
 
 # latest observations data
 echo ""
 echo " - - data"
 Latitude=$(jq -r .geometry.coordinates[1] $ProjectDir$JSONFile)
 echo $"Latitude: "$Latitude
+
 Longitude=$(jq -r .geometry.coordinates[0] $ProjectDir$JSONFile)
 echo $"Longitude: "$Longitude
 
@@ -120,10 +129,18 @@ WxReport+=$UserStationId$' - '$(date '+%H:%M:%S')
 WxReport+=$'\nConditions:'$TextDescription
 WxReport+=$'\nTemp:'$FloatTemperature"°F"
 WxReport+=$'\nDewpoint:'$FloatDewpoint"°F"
-WxReport+=$'\nWind:'$WindDirectionName" "$WindSpeedMph
+if [ "$WindSpeedMph" != "calm" ]; then
+	WxReport+=$'\nWind:'$WindDirectionName" "$WindSpeedMph
+	else
+	WxReport+=$'\nWind:'$WindSpeedMph
+fi
 WxReport+=$'\n📍'$NodeLocation
 
 echo $WxReport
+
+# check how long the message is
+WxReportLength=${#WxReport}
+echo "WxReportLength: "$WxReportLength
 
 echo ""
 echo " - - send mesh_wx"
@@ -137,7 +154,10 @@ echo "meshtastic stuff"
 echo ""
 echo " - - noaa_location_forecast"
 
+# location of JSON for step 1
 JSONFile="noaa_location_metadata.json"
+
+# clear contents of variable to reuse for next message
 WxReport=""
 
 # Two step process for getting forecast - https://weather-gov.github.io/api/general-faqs
@@ -168,17 +188,37 @@ echo ""
 echo " - - message body"
 WxReport=$UserStationId$' - '$(date '+%H:%M:%S')
 WxReport+=$'\n'$ForecastName", "$DetailedForecast
-WxReport+=$'\n📍'$NodeLocation
 
 echo $WxReport
+
+# check how long the message is
+WxReportLength=${#WxReport}
+echo "WxReportLength: "$WxReportLength
+
+declare -i MaxMessageLength=200
+MaxMessageLength=MaxMessageLength-${#NodeLocation}
+echo "Max Message Length: "$MaxMessageLength
+
+if (($WxReportLength > MaxMessageLength)); then
+	echo "message is too long, truncating"
+	WxReportShort=${WxReport:0:MaxMessageLength}
+	WxReportShort+=$'...end'
+	WxReportLength=${#WxReportShort}
+	echo "WxReportLength: "$WxReportLength
+else
+	WxReportShort=$WxReport
+fi
+
+WxReportShort+=$'\n📍'$NodeLocation
+echo $WxReportShort
 
 echo ""
 echo " - - send mesh_wx"
 python -m venv ~/src/venv && source ~/src/venv/bin/activate;
 echo "python stuff"
 
-meshtastic --ch-index $Channel --sendtext "$WxReport"
-#meshtastic --ch-index $Channel --sendtext "$WxReport">/dev/null 2>&1
+meshtastic --ch-index $Channel --sendtext "$WxReportShort"
+#meshtastic --ch-index $Channel --sendtext "$WxReportShort">/dev/null 2>&1
 echo "meshtastic stuff"
 
 echo ""
@@ -186,3 +226,5 @@ echo " - - execution times"
 End=$(date '+%Y-%m-%d %H:%M:%S')
 echo $"Script Begin: "$Begin
 echo $"Script   End: "$End
+
+#curl "https://aa.usno.navy.mil/api/rstt/oneday?date=2025-12-01&coords=40.77,-73.98&tz=-5&dst=true" > mesh_wx_NOAA/navy_sun_moon.json 
