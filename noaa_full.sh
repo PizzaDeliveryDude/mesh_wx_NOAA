@@ -226,5 +226,3 @@ echo " - - execution times"
 End=$(date '+%Y-%m-%d %H:%M:%S')
 echo $"Script Begin: "$Begin
 echo $"Script   End: "$End
-
-#curl "https://aa.usno.navy.mil/api/rstt/oneday?date=2025-12-01&coords=40.77,-73.98&tz=-5&dst=true" > mesh_wx_NOAA/navy_sun_moon.json 
