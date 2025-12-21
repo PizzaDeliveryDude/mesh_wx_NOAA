@@ -1,5 +1,7 @@
 # mesh_wx_NOAA
-Uses NOAA weather API to send over Meshtastic. Still a variation in progress, but making headway
+Uses NOAA and Navy APIs to send over Meshtastic. Still a variation in progress, but making headway
+
+# Needs jq installed
 
 # Usage for noaa_full.sh
 
