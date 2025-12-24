@@ -63,7 +63,7 @@ fetch_noaa_latest() {
   mv -f "$tmp" "$out" && echo "fetch_noaa_latest Updated: $out" || { echo "Error: failed to move $tmp to $out" >&2; rm -f "$tmp"; return 4; }
 }
 # ************************************************************************************************************************************
-# copolit wrote this
+# copilot wrote this
 # Bash function to GET NOAA forecast and save to mesh_wx_NOAA/noaa_location_forecast.json
 #
 # Note: NOAA API requests are expected to include a descriptive User-Agent.

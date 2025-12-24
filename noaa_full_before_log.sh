@@ -27,126 +27,176 @@ log_to_noaa() {
 # printf "This is a test\n" | log_to_noaa
 # printf "hi\n" | log_to_noaa /absolute/or/relative/path/noaa_full.log
 
+# Append to an existing file
+# your_command | tee -a existing_logfile.txt
+
+# Include standard error (stderr)
+# your_command 2>&1 | tee logfile.txt
+
+# [$(date '+%Y-%m-%d %H:%M:%S')]
+LogEntryDateTime=$"["$(date '+%Y-%m-%d %H:%M:%S')"]"
+
 # NOAA observations - latest
 echo $(clear)
 
-printf "+--------------------------------+" | log_to_noaa
-printf "|     BEGIN NOAA FULL SH LOG     |" | log_to_noaa
-printf "+--------------------------------+" | log_to_noaa
-
 # setup
+
+
+
+
+
+
+#printf "%s\n" ""["$(date '+%Y-%m-%d %H:%M:%S')"]"" 2>&1 | tee -a mesh_wx_DEV/noaa_full.log 
+#printf "%s Begin noaa_full.sh logging\n" ""["$(date '+%Y-%m-%d %H:%M:%S')"]"" 2>&1 | tee -a mesh_wx_DEV/noaa_full.log 
+#printf "%s - - script setup\n" ""["$(date '+%Y-%m-%d %H:%M:%S')"]"" 2>&1 | tee -a mesh_wx_DEV/noaa_full.log 
+#Begin=$(date '+%Y-%m-%d %H:%M:%S')
+#printf "%s Script Begin: $Begin\n" ""["$(date '+%Y-%m-%d %H:%M:%S')"]"" 2>&1 | tee -a mesh_wx_DEV/noaa_full.log 
+#echo $"Script Begin: "$Begin
+
+
+
+#printf "This is a test 01\n" | log_to_noaa
+#sleep 2
+#printf "This is a test 02\n" | log_to_noaa
+#sleep 2
+#printf "This is a test 03\n" | log_to_noaa
+#sleep 2
+#printf "This is a test 04\n" | log_to_noaa
+#sleep 2
+#printf "This is a test 05\n\n\n\n" | log_to_noaa
+
+
+printf "Begin noaa_full.sh logging\n" | log_to_noaa
+printf "- - script setup\n" | log_to_noaa
 Begin=$(date '+%Y-%m-%d %H:%M:%S')
 printf "Script Begin Time: $Begin\n" | log_to_noaa
+
+
+
+
 
 # file location variables
 ProjectDir="mesh_wx_DEV/"
 JSONFile="noaa_observations_latest.json"
 FunctionsFile="functions.sh"
+#echo "Project Directory: "$ProjectDir
+#echo "JSON location: "$ProjectDir$JSONFile
+#echo "Functions location: "$ProjectDir$FunctionsFile
 printf "Project Directory: $ProjectDir" | log_to_noaa
 printf "JSON location: $ProjectDir$JSONFile" | log_to_noaa
 printf "Functions location: $ProjectDir$FunctionsFile" | log_to_noaa
 
+
+
+
 # variables
 # the first variable the user can specify is the airport code, KNYC is default
 UserStationId="${1:-KNYC}"
-printf "UserStationId: $UserStationId" | log_to_noaa
+echo "UserStationId: "$UserStationId
 
 # the second variable the user can specify is the node sending location, airport code is default
 NodeLocation="${2:-$UserStationId}"
-printf "Node Location: $NodeLocation" | log_to_noaa
+echo "Node Location: "$NodeLocation
 
 # meshtastic radio channel, plesae do not spam your default local channel :)
 Channel="${3:-10}"
-printf "Meshtastic Channel: $Channel" | log_to_noaa
+echo "Meshtastic Channel: "$Channel
 
 # temp JSON location for noaa_observations_latest
-printf "JSON location: $ProjectDir$JSONFile" | log_to_noaa
+echo "JSON location: "$ProjectDir$JSONFile
 
 # script functions location
 # API calls and conversions are done in that file
 source $ProjectDir$FunctionsFile
-printf "additional script functions location: $ProjectDir$FunctionsFile" | log_to_noaa
+echo "additional script functions location: "$ProjectDir$FunctionsFile
+
+echo ""
+echo " - - fetch NOAA latest"
 
 # fetch_noaa_latest
-printf "fetch_noaa_latest $UserStationId $ProjectDir$JSONFile" | log_to_noaa
-fetch_noaa_latest $UserStationId $ProjectDir$JSONFile | log_to_noaa
+fetch_noaa_latest $UserStationId $ProjectDir$JSONFile
+echo "fetch_noaa_latest API call"
 
 # latest observations data
+echo ""
+echo " - - data"
 Latitude=$(jq -r .geometry.coordinates[1] $ProjectDir$JSONFile)
-printf "Latitude: $Latitude" | log_to_noaa
+echo $"Latitude: "$Latitude
 
 Longitude=$(jq -r .geometry.coordinates[0] $ProjectDir$JSONFile)
-printf "Longitude: $Longitude" | log_to_noaa
+echo $"Longitude: "$Longitude
 
 Station=$(jq -r .properties.station $ProjectDir$JSONFile)
-printf "Station: $Station" | log_to_noaa
+echo $"Station: "$Station
 
 StationId=$(jq -r .properties.stationId $ProjectDir$JSONFile)
-printf "StationId: $StationId" | log_to_noaa
+echo $"StationId: "$StationId
 
 StationName=$(jq -r .properties.stationName $ProjectDir$JSONFile)
-printf "StationName: $StationName" | log_to_noaa
+echo $"StationName: "$StationName
 
 Timestamp=$(jq -r .properties.timestamp $ProjectDir$JSONFile)
-printf "Timestamp: $Timestamp" | log_to_noaa
+echo $"Timestamp: "$Timestamp
 
 TextDescription=$(jq -r .properties.textDescription $ProjectDir$JSONFile)
-printf "TextDescription: $TextDescription" | log_to_noaa
+echo $"TextDescription: "$TextDescription
 
 Temperature=$(jq -r .properties.temperature.value $ProjectDir$JSONFile)
 FloatTemperature=$(c_to_f $(echo "$Temperature" | bc))
-printf "Temperature (°C): $Temperature Converted Temperature (°F): $FloatTemperature" | log_to_noaa
+echo $"Temperature (Â°C): "$Temperature$" Converted Temperature (Â°F): "$FloatTemperature
 
 Dewpoint=$(jq -r .properties.dewpoint.value $ProjectDir$JSONFile)
 FloatDewpoint=$(c_to_f $(echo "$Dewpoint" | bc))
-printf "Dewpoint (°C): $Dewpoint Converted Dewpoint (°F): $FloatDewpoint" | log_to_noaa
+echo $"Dewpoint (Â°C): "$Dewpoint$" Converted Dewpoint (Â°F): "$FloatDewpoint
 
 WindDirection=$(jq -r .properties.windDirection.value $ProjectDir$JSONFile)
 WindDirectionName=$(wind_dir_name $WindDirection)
-printf "Wind Direction (°): $WindDirection Wind Direction Name: $WindDirectionName" | log_to_noaa
+echo $"Wind Direction (Â°): "$WindDirection$" Wind Direction Name: "$WindDirectionName
 
 WindSpeed=$(jq -r .properties.windSpeed.value $ProjectDir$JSONFile)
 WindSpeedMph=$(kph_to_mph $WindSpeed)
-printf "Wind Speed (kmh): $WindSpeedWind Speed (mph): $WindSpeedMph" | log_to_noaa
+echo $"Wind Speed (kmh): "$WindSpeed$"Wind Speed (mph): "$WindSpeedMph
 
 WindGust=$(jq -r .properties.windGust.value $ProjectDir$JSONFile)
-printf "Wind Gust (kmh): $WindGust" | log_to_noaa
+echo $"Wind Gust (kmh): "$WindGust
 
 BarometricPressure=$(jq -r .properties.barometricPressure.value $ProjectDir$JSONFile)
-printf "Barometric Pressure (Pa): $BarometricPressure" | log_to_noaa
+echo $"Barometric Pressure (Pa): "$BarometricPressure
 
 SeaLevelPressure=$(jq -r .properties.seaLevelPressure.value $ProjectDir$JSONFile)
-printf "Sea Level Pressure (Pa): $SeaLevelPressure" | log_to_noaa
+echo $"Sea Level Pressure (Pa): "$SeaLevelPressure
 
 Visibility=$(jq -r .properties.visibility.value $ProjectDir$JSONFile)
-printf "Visibility (m): $Visibility" | log_to_noaa
+echo $"Visibility (m): "$Visibility
 
 MaxTemperatureLast24Hours=$(jq -r .properties.maxTemperatureLast24Hours.value $ProjectDir$JSONFile)
-printf "MaxTemperatureLast24Hours ( C): $MaxTemperatureLast24Hours" | log_to_noaa
+echo $"MaxTemperatureLast24Hours (Â°C): "$MaxTemperatureLast24Hours
 
 MinTemperatureLast24Hours=$(jq -r .properties.minTemperatureLast24Hours.value $ProjectDir$JSONFile)
-printf "MinTemperatureLast24Hours ( C): $MinTemperatureLast24Hours" | log_to_noaa
+echo $"MinTemperatureLast24Hours (Â°C): "$MinTemperatureLast24Hours
 
 PrecipitationLastHour=$(jq -r .properties.precipitationLastHour.value $ProjectDir$JSONFile)
-printf "PrecipitationLastHour (mm): $PrecipitationLastHour" | log_to_noaa
+echo $"PrecipitationLastHour (mm): "$PrecipitationLastHour
 
 PrecipitationLast3Hours=$(jq -r .properties.precipitationLast3Hours.value $ProjectDir$JSONFile)
-printf "PrecipitationLast3Hours (mm): $PrecipitationLast3Hours" | log_to_noaa
+echo $"PrecipitationLast3Hours (mm): "$PrecipitationLast3Hours
 
 PrecipitationLast6Hours=$(jq -r .properties.precipitationLast6Hours.value $ProjectDir$JSONFile)
-printf "PrecipitationLast6Hours (mm): $PrecipitationLast6Hours" | log_to_noaa
+echo $"PrecipitationLast6Hours (mm): "$PrecipitationLast6Hours
 
 RelativeHumidity=$(jq -r .properties.relativeHumidity.value $ProjectDir$JSONFile)
-printf "RelativeHumidity (percent): $RelativeHumidity" | log_to_noaa
+echo $"RelativeHumidity (%): "$RelativeHumidity
 
 WindChill=$(jq -r .properties.windChill.value $ProjectDir$JSONFile)
 FloatWindChill=$(c_to_f $(echo "$WindChill" | bc))
-printf "Wind Chill (°C) : $WindChill Converted Wind Chill (°F): $FloatWindChill" | log_to_noaa
+echo $"Wind Chill (Â°C) : "$WindChill$" Converted Wind Chill (Â°F): "$FloatWindChill
 
 HeatIndex=$(jq -r .properties.heatIndex.value $ProjectDir$JSONFile)
 FloatHeatIndex=$(c_to_f $(echo "$HeatIndex" | bc))
-printf "Heat Index (°C): $HeatIndex Converted Heat Index (°F): $FloatHeatIndex" | log_to_noaa
+echo $"Heat Index (Â°C): "$HeatIndex$" Converted Heat Index (Â°F): "$FloatHeatIndex
 
+echo ""
+echo " - - message body"
 WxReport=""
 WxReport+=$UserStationId$' - '$(date '+%H:%M:%S')
 WxReport+=$'\nConditions:'$TextDescription
@@ -158,95 +208,94 @@ if [ "$WindSpeedMph" != "calm" ]; then
 	WxReport+=$'\nWind:'$WindSpeedMph
 fi
 WxReport+=$'\nðŸ“'$NodeLocation
-printf "$WxReport" | log_to_noaa
+
+echo $WxReport
 
 # check how long the message is
 WxReportLength=${#WxReport}
-printf "WxReportLength: $WxReportLength" | log_to_noaa
+echo "WxReportLength: "$WxReportLength
 
-printf "Python venv Stuff" | log_to_noaa
+echo ""
+echo " - - send mesh_wx"
 python -m venv ~/src/venv && source ~/src/venv/bin/activate;
+echo "python stuff"
 
-printf "Meshtastic Stuff" | log_to_noaa
-meshtastic --ch-index $Channel --sendtext "$WxReport" | log_to_noaa
+meshtastic --ch-index $Channel --sendtext "$WxReport"
+#meshtastic --ch-index $Channel --sendtext "$WxReport">/dev/null 2>&1
+echo "meshtastic stuff"
+
+echo ""
+echo " - - noaa_location_forecast"
 
 # location of JSON for step 1
 JSONFile="noaa_location_metadata.json"
-printf "noaa_location_metadata.json $ProjectDir$JSONFile" | log_to_noaa
 
 # clear contents of variable to reuse for next message
 WxReport=""
-printf "WxReport: $WxReport" | log_to_noaa
 
 # Two step process for getting forecast - https://weather-gov.github.io/api/general-faqs
 # Step 1 - https://api.weather.gov/points/{lat},{lon}
 #curl  https://api.weather.gov/points/40.7565,-73.9702 >> mesh_wx_NOAA/noaa_location_metadata.json
 # Step 2 - Find the properties object, and inside that, find the forecast property. Youâ€™ll find another URL there.
-#curl  https://api.weather.gov/gridpoints/OKX/34,37/forecast >> mesh_wx_NOAA/noaa_location_forecast.json#
-#
-#
-#
-# I have a hunch this is where my script fails because no userid thing
+#curl  https://api.weather.gov/gridpoints/OKX/34,37/forecast >> mesh_wx_NOAA/noaa_location_forecast.json
+
 curl https://api.weather.gov/points/$Latitude,$Longitude > $ProjectDir$JSONFile
-printf "curl https://api.weather.gov/points/$Latitude,$Longitude > $ProjectDir$JSONFile" | log_to_noaa
 
 ForecastUrl=$(jq -r .properties.forecast $ProjectDir$JSONFile)
-printf "Forecast URL: $ForecastURL" | log_to_noaa
+echo $"Forecast URL: "$ForecastUrl
 
 JSONFile="noaa_location_forecast.json"
-printf "noaa_location_forecast.json: $ProjectDir$JSONFile" | log_to_noaa
 
-fetch_noaa_forecast $ForecastUrl
-printf "fetch_noaa_forecast $ForecastUrl" | log_to_noaa
+fetch_noaa_forecast  $ForecastUrl
 
 # latest forecast data
+echo ""
+echo " - - data"
 ForecastName=$(jq -r .periods[0].name $ProjectDir$JSONFile)
-printf "Forecast Name: $ForecastName" | log_to_noaa
+echo "Forecast Name: "$ForecastName
 
 DetailedForecast=$(jq -r .periods[0].detailedForecast $ProjectDir$JSONFile)
-printf "Detailed Forecast: "$DetailedForecast | log_to_noaa
+echo "Detailed Forecast: "$DetailedForecast
 
+echo ""
+echo " - - message body"
 WxReport=$UserStationId$' - '$(date '+%H:%M:%S')
 WxReport+=$'\n'$ForecastName", "$DetailedForecast
 
-printf "WxReport: "$WxReport | log_to_noaa
+echo $WxReport
 
 # check how long the message is
 WxReportLength=${#WxReport}
-#echo "WxReportLength: "$WxReportLength
-printf "WxReportLength: $WxReportLength" | log_to_noaa
+echo "WxReportLength: "$WxReportLength
 
 declare -i MaxMessageLength=200
 MaxMessageLength=MaxMessageLength-${#NodeLocation}
-#echo "Max Message Length: "$MaxMessageLength
-printf "Max Message Length: $MaxMessageLength" | log_to_noaa
+echo "Max Message Length: "$MaxMessageLength
 
 if (($WxReportLength > MaxMessageLength)); then
-	printf "message is too long, truncating" | log_to_noaa
-
+	echo "message is too long, truncating"
 	WxReportShort=${WxReport:0:MaxMessageLength}
-	WxReportShort+=$"...end"
+	WxReportShort+=$'...end'
 	WxReportLength=${#WxReportShort}
-	printf "WxReportLength: $WxReportLength" | log_to_noaa
-
+	echo "WxReportLength: "$WxReportLength
 else
 	WxReportShort=$WxReport
 fi
 
 WxReportShort+=$'\nðŸ“'$NodeLocation
-printf "WxReportShort: $WxReportShort" | log_to_noaa
+echo $WxReportShort
 
+echo ""
+echo " - - send mesh_wx"
 python -m venv ~/src/venv && source ~/src/venv/bin/activate;
-printf "python -m venv ~/src/venv && source ~/src/venv/bin/activate;" | log_to_noaa
+echo "python stuff"
 
-meshtastic --ch-index $Channel --sendtext "$WxReportShort" | log_to_noaa
-printf "meshtastic --ch-index $Channel --sendtext $WxReportShort" | log_to_noaa
+meshtastic --ch-index $Channel --sendtext "$WxReportShort"
+#meshtastic --ch-index $Channel --sendtext "$WxReportShort">/dev/null 2>&1
+echo "meshtastic stuff"
 
-printf "Execution Time:" | log_to_noaa
+echo ""
+echo " - - execution times"
 End=$(date '+%Y-%m-%d %H:%M:%S')
-printf "Script Begin: $Begin" | log_to_noaa
-printf "Script   End: $End" | log_to_noaa
-printf "+--------------------------------+" | log_to_noaa
-printf "|       END NOAA FULL SH LOG     |" | log_to_noaa
-printf "+--------------------------------+" | log_to_noaa
-printf "" | log_to_noaa
+echo $"Script Begin: "$Begin
+echo $"Script   End: "$End
